@@ -8,7 +8,7 @@
   <p>2.3. Установить необходимые библиотеки. Это можно сделать командой <b>pip install -r requirements.txt</b> в корневой папке проекта.</p>
   <p>2.4. В терминале написать команду <b>python manage.py makemigrations trading_platform</b> в корневой папке проекта.</p>
   <p>2.5. В терминале написать команду <b>python manage.py migrate trading_platform</b> в корневой папке проекта.</p>
-  <p>2.6. В терминале написать команду <b>python manage.py runserver.</b> в корневой папке проекта.</p>
+  <p>2.6. В терминале написать команду <b>python manage.py runserver</b> в корневой папке проекта.</p>
   <p>2.7. Делать запросы, например из Postman :). Начать можно с <a href="http://127.0.0.1:8000/api/init_db">http://127.0.0.1:8000/api/init_db</a>, чтобы заполнить базу данных тестовыми значениями.</p>
 <h1>3. API</h1>
   <p>3.1. <b>/api/drop</b> - удалить все записи trades.</p>
