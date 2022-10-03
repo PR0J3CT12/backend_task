@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db.utils import DataError
 from django.db.models import Max, Min
 from django.views.decorators.http import require_http_methods
-from custom_functions import get_variable
+from .custom_functions import get_variable
 
 
 @require_http_methods(["DELETE"])
@@ -81,10 +81,10 @@ def max_min_price(request, symbol):
             else:
                 trades_data_filtered = trades_data_by_symbol
 
-        if len(trades_data_by_symbol) == 0:
+        if not trades_data_by_symbol:
             return HttpResponse(json.dumps({'message': f'Сделок с символом {symbol} не существует.', 'detail': '', 'instance': request.get_full_path()}, ensure_ascii=False), status=404)
         else:
-            if len(trades_data_filtered) == 0:
+            if not trades_data_filtered:
                 return HttpResponse(json.dumps({'message': 'Нет сделок в заданном периоде.', 'detail': '', 'instance': request.get_full_path()}, ensure_ascii=False), status=404)
         max_price = trades_data_filtered.aggregate(Max('price'))["price__max"]
         min_price = trades_data_filtered.aggregate(Min('price'))["price__min"]
