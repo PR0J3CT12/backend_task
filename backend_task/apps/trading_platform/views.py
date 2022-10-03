@@ -29,7 +29,7 @@ def init_db(request):
 @require_http_methods(["DELETE"])
 def drop_trades(request):
     Trade.objects.all().delete()
-    return HttpResponse(json.dumps({'message': 'Таблица trades успешно очищена.'}, ensure_ascii=False, status=204))
+    return HttpResponse(json.dumps({'message': 'Таблица trades успешно очищена.'}, ensure_ascii=False), status=204)
 
 
 @require_http_methods(["POST"])
@@ -39,7 +39,7 @@ def insert_into_trade(request):
     else:
         return HttpResponse(json.dumps({'message': 'Body запроса пустое.', 'detail': '', 'instance': '/api/insert'}, ensure_ascii=False), status=400)
     try:
-        user = User.objects.filter(id=request_body["user"])
+        user = User.objects.filter(id=request_body["user"])[0]
         if not user:
             return HttpResponse(json.dumps({'message': 'Пользователь не существует.', 'detail': '', 'instance': '/api/insert'}, ensure_ascii=False), status=404)
         if request_body["type"] not in ["sell", "buy"]:
@@ -52,6 +52,8 @@ def insert_into_trade(request):
         return HttpResponse(json.dumps({'message': 'Данные успешно добавлены в таблицу trades.'}, ensure_ascii=False))
     except ValueError:
         return HttpResponse(json.dumps({'message': 'В поле price указано неверное значение', 'detail': 'Значение должно быть рациональным числом.', 'instance': '/api/insert'}, ensure_ascii=False), status=400)
+    except ValidationError:
+        return HttpResponse(json.dumps({'message': 'Пользователь не существует.', 'detail': '', 'instance': '/api/insert'}, ensure_ascii=False), status=404)
     except DataError:
         return HttpResponse(json.dumps({'message': 'В поле symbol указано не верное значение.', 'detail': 'Длина введенного символа не должна превышать 4.', 'instance': '/api/insert'}, ensure_ascii=False), status=400)
     except KeyError as e:
@@ -60,24 +62,27 @@ def insert_into_trade(request):
 
 @require_http_methods(["GET"])
 def get_everything_from_trades(request):
-    user_id = get_variable('user', request)
-    if user_id:
-        user = User.objects.filter(id=user_id)
-        if not user:
-            return HttpResponse(json.dumps({'message': 'Пользователь не существует.', 'detail': '', 'instance': '/api/trades'}, ensure_ascii=False), status=404)
-        trades_data = list(Trade.objects.filter(user=user))
-        result_list = []
-        for trade in trades_data:
-            trade_json = {"type": trade.type, "user": {"id": str(user.id), "name": user.name}, "symbol": trade.symbol, "price": trade.price, "timestamp": str(trade.timestamp)}
-            result_list.append(trade_json)
-        return HttpResponse(json.dumps({'trades': result_list}, ensure_ascii=False))
-    else:
-        trades_data = Trade.objects.all()
-        result_list = []
-        for trade in trades_data:
-            trade_json = {"type": trade.type, "user": {"id": "", "name": ""}, "symbol": trade.symbol, "price": trade.price, "timestamp": str(trade.timestamp)}
-            result_list.append(trade_json)
-        return HttpResponse(json.dumps({'trades': result_list}, ensure_ascii=False))
+    try:
+        user_id = get_variable('user', request)
+        if user_id:
+            user = User.objects.filter(id=user_id)[0]
+            if not user:
+                return HttpResponse(json.dumps({'message': 'Пользователь не существует.', 'detail': '', 'instance': '/api/trades'}, ensure_ascii=False), status=404)
+            trades_data = list(Trade.objects.filter(user=user.id))
+            result_list = []
+            for trade in trades_data:
+                trade_json = {"type": trade.type, "user": {"id": str(user.id), "name": user.name}, "symbol": trade.symbol, "price": trade.price, "timestamp": str(trade.timestamp)}
+                result_list.append(trade_json)
+            return HttpResponse(json.dumps({'trades': result_list}, ensure_ascii=False))
+        else:
+            trades_data = Trade.objects.all()
+            result_list = []
+            for trade in trades_data:
+                trade_json = {"type": trade.type, "user": {"id": "", "name": ""}, "symbol": trade.symbol, "price": trade.price, "timestamp": str(trade.timestamp)}
+                result_list.append(trade_json)
+            return HttpResponse(json.dumps({'trades': result_list}, ensure_ascii=False))
+    except ValidationError:
+        return HttpResponse(json.dumps({'message': 'Пользователь не существует.', 'detail': '', 'instance': '/api/insert'}, ensure_ascii=False), status=404)
 
 
 @require_http_methods(["GET"])
