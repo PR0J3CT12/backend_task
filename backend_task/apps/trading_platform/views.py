@@ -39,9 +39,10 @@ def insert_into_trade(request):
     else:
         return HttpResponse(json.dumps({'message': 'Body запроса пустое.', 'detail': '', 'instance': '/api/insert'}, ensure_ascii=False), status=400)
     try:
-        user = User.objects.filter(id=request_body["user"])[0]
+        user = User.objects.filter(id=request_body["user"])
         if not user:
             return HttpResponse(json.dumps({'message': 'Пользователь не существует.', 'detail': '', 'instance': '/api/insert'}, ensure_ascii=False), status=404)
+        user = user[0]
         if request_body["type"] not in ["sell", "buy"]:
             return HttpResponse(json.dumps({'message': 'В поле type указан неверный тип.', 'detail': 'Необходимо указать "sell" или "buy".', 'instance': '/api/insert'}, ensure_ascii=False), status=400)
         if "timestamp" not in request_body.keys():
@@ -65,9 +66,10 @@ def get_everything_from_trades(request):
     try:
         user_id = get_variable('user', request)
         if user_id:
-            user = User.objects.filter(id=user_id)[0]
+            user = User.objects.filter(id=user_id)
             if not user:
                 return HttpResponse(json.dumps({'message': 'Пользователь не существует.', 'detail': '', 'instance': '/api/trades'}, ensure_ascii=False), status=404)
+            user = user[0]
             trades_data = list(Trade.objects.filter(user=user.id))
             result_list = []
             for trade in trades_data:
